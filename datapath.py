@@ -1,62 +1,51 @@
+#Loading the
+
+global samples_path
+samples_path = '/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Samplesm600_0.2-0.8_N10_E5000.npy'
+
+#samples_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Samplesm600_0.0-1.0_E15000.npy' #done
 
 
-#Loading the #50,000 - 20,000 - 35,000 - 20,000 - 10,000 - 60,000
+#samples_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Samplesm600_0.2-0.8_N10_E5000.npy' #done
+#samples_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Samplesm600_0.0-0.8_N10_E5000.npy'
+#samples_path  = '/mnt/storage/lborgna/WeakSupervisionData/TestSetsLowPt/Samplesm600_0.0-0.8_N2_E10000.npy'
 
-global sig_train
-#sig_train = "/mnt/storage/lborgna/FullSupervisedData/Sig_All_shuffled_N50000.npy"
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/Sig_m600_Train_0_30000.npy'
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig_m600_Train_25p_N50000.npy'
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig_m4000_Train_25p_N10000.npy'
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig2_LowPt_Train_25p_N10000.npy'
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig7_HighPt_Train_25p_N50000.npy'
-sig_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig7_m600_Train_25p_N50000.npy'
+global fractions_path
+fractions_path = '/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Fractionsm600_0.2-0.8_N10_E5000.npy'
 
+#fractions_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Fractionsm600_0.0-1.0_E15000.npy' #done
 
-#sig_train  = '/mnt/storage/lborgna/FullSupervisedData/QG/Sig_JZ3W_1-QuarkHist-norot-nonorm.root0_25000.npy'
-#sig_train = '/mnt/storage/lborgna/FullSupervisedData/QG/Sig_JZ6W-QuarkHist-norot-nonorm.root0_50000.npy'
+#fractions_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Fractionsm600_0.2-0.8_N10_E5000.npy' #done
+#fractions_path  ='/mnt/storage/lborgna/WeakSupervisionData/TestSetsFinal/Fractionsm600_0.0-0.8_N10_E5000.npy'
+#fractions_path  = '/mnt/storage/lborgna/WeakSupervisionData/TestSetsLowPt/Fractionsm600_0.2-0.8_N2_E10000.npy'
 
-global bkg_train
-#bkg_train = "/mnt/storage/lborgna/FullSupervisedData/Bkg_All_shuffled_N50000.npy"
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/Bkg_m600_Train_0_30000.npy'
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg_m600_Train_25p_N50000.npy'
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg_m4000_Train_25p_N10000.npy'
-#bkg_train  = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg2_LowPt_Train_25p_N10000.npy'
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg7_HighPt_Train_25p_N50000.npy'
-bkg_train = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg7_m600_Train_25p_N50000.npy'
-
-
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/QG/BKG_JZ3W_1-GluonHist-norot-nonorm.root0_25000.npy'
-#bkg_train = '/mnt/storage/lborgna/FullSupervisedData/QG/BKG_JZ6W-GluonHist-norot-nonorm.root0_50000.npy'
 
 global sig_test
-#sig_test = "/mnt/storage/lborgna/FullSupervisedData/Sig_All_shuffled_N30000.npy"
-#sig_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Sig_m600_Test_25p_N50000.npy"
-#sig_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig_m4000_Test_25p_N10000.npy'
-#sig_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig2_LowPt_Test_25p_N10000.npy'
-#sig_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig7_HighPt_Test_25p_N50000.npy'
-sig_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Sig7_m600_Test_25p_N50000.npy'
-
-
-#sig_test = '/mnt/storage/lborgna/FullSupervisedData/QG/Sig_JZ3W_1-QuarkHist-norot-nonorm.root25000_50000.npy'
-#sig_test = '/mnt/storage/lborgna/FullSupervisedData/QG/Sig_JZ6W-QuarkHist-norot-nonorm.root50000_100000.npy'
-
+#sig_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Sig2_LowPt_Test_25p_N10000.npy"
+sig_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Sig_m600_Test_25p_N10000.npy"
 
 global bkg_test
-#bkg_test = "/mnt/storage/lborgna/FullSupervisedData/Bkg_All_shuffled_N30000.npy"
-#bkg_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Bkg_m600_Test_25p_N50000.npy"
-#bkg_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg_m4000_Test_25p_N10000.npy'
-#bkg_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg2_LowPt_Test_25p_N10000.npy'
-#bkg_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg7_HighPt_Test_25p_N50000.npy'
-bkg_test = '/mnt/storage/lborgna/FullSupervisedData/Test/Bkg7_m600_Test_25p_N50000.npy'
+#bkg_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Bkg2_LowPt_Test_25p_N10000.npy"
+bkg_test = "/mnt/storage/lborgna/FullSupervisedData/Test/Bkg_m600_Test_25p_N10000.npy"
+
+"""
+
+FractionsLowPt_0.0-0.8_N10_E5000.npy  SamplesLowPt_0.0-0.8_N10_E5000.npy
+FractionsLowPt_0.0-1.0_N10_E5000.npy  SamplesLowPt_0.0-1.0_N10_E5000.npy
+FractionsLowPt_0.0-1.0_N2_E25000.npy  SamplesLowPt_0.0-1.0_N2_E25000.npy
+FractionsLowPt_0.0-1.0_N2_E25.npy     SamplesLowPt_0.0-1.0_N2_E25.npy
+FractionsLowPt_0.2-0.4_N10_E5000.npy  SamplesLowPt_0.2-0.4_N10_E5000.npy
+FractionsLowPt_0.2-0.6_N10_E5000.npy  SamplesLowPt_0.2-0.6_N10_E5000.npy
+FractionsLowPt_0.2-0.8_N10_E5000.npy  SamplesLowPt_0.2-0.8_N10_E5000.npy
+FractionsLowPt_0.2-0.8_N2_E25000.npy  SamplesLowPt_0.2-0.8_N2_E25000.npy
+FractionsLowPt_0.2-0.8_N3_E16500.npy  SamplesLowPt_0.2-0.8_N3_E16500.npy
+FractionsLowPt_0.2-0.8_N4_E12500.npy  SamplesLowPt_0.2-0.8_N4_E12500.npy
+FractionsLowPt_0.2-0.8_N5_E10000.npy  SamplesLowPt_0.2-0.8_N5_E10000.npy
 
 
-#bkg_test = '/mnt/storage/lborgna/FullSupervisedData/QG/BKG_JZ3W_1-GluonHist-norot-nonorm.root25000_50000.npy'
-#bkg_test = '/mnt/storage/lborgna/FullSupervisedData/QG/BKG_JZ6W-GluonHist-norot-nonorm.root50000_100000.npy'
+Fractionsm600_0.0-0.2_N10_E5000.npy  Fractionsm600_0.0-0.8_N4_E12500.npy  Fractionsm600_0.0-1.0_N10_E5000.npy  Fractionsm600_0.2-0.8_N10_E5000.npy  Samplesm600_0.0-0.8_N3_E16500.npy  Samplesm600_0.0-1.0_E3000.npy      Samplesm600_0.2-0.8_E1000.npy
+Fractionsm600_0.0-0.8_N10_E5000.npy  Fractionsm600_0.0-0.8_N5_E10000.npy  Fractionsm600_0.2-0.4_N10_E5000.npy  Samplesm600_0.0-0.2_N10_E5000.npy    Samplesm600_0.0-0.8_N4_E12500.npy  Samplesm600_0.0-1.0_N10_E5000.npy  Samplesm600_0.2-0.8_N10_E1000.npy
+Fractionsm600_0.0-0.8_N2_E25000.npy  Fractionsm600_0.0-1.0_E15000.npy     Fractionsm600_0.2-0.6_N10_E5000.npy  Samplesm600_0.0-0.8_N10_E5000.npy    Samplesm600_0.0-0.8_N5_E10000.npy  Samplesm600_0.2-0.4_N10_E5000.npy  Samplesm600_0.2-0.8_N10_E5000.npy
+Fractionsm600_0.0-0.8_N3_E16500.npy  Fractionsm600_0.0-1.0_E3000.npy      Fractionsm600_0.2-0.8_E1000.npy      Samplesm600_0.0-0.8_N2_E25000.npy    Samplesm600_0.0-1.0_E15000.npy     Samplesm600_0.2-0.6_N10_E5000.npy
 
-#ALL
-#sig_test
-#bkg_test = '/mnt/storage/lborgna/BkgMatched/Final/BkgAll6_HighPt_Test.root'
-
-
-
-
+"""
