@@ -1,9 +1,8 @@
 from __future__ import print_function
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
-import sys
 import numpy as np
 import time
 import h5py
@@ -14,33 +13,53 @@ from keras.optimizers import SGD
 from keras import backend as K
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, Convolution2D, MaxPooling2D
-from keras.utils import np_utils
-from keras.utils import plot_model
+from keras.utils import np_utils, plot_model
 from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import CSVLogger, EarlyStopping
 import tensorflow as tf
 import pydot
 from sklearn.model_selection import StratifiedKFold, KFold
-from sklearn.metrics import confusion_matrix
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import confusion_matrix
 
-import networks.LeNet5  as LeNet5
-import networks.VGG19   as VGG19
-import networks.VGG16   as VGG16
-import networks.Resnet2 as resnet
-import networks.FC      as FC
+import networks.FC     as FC
+import networks.LeNet5 as LeNet5
+import networks.VGG19  as VGG19
+import networks.VGG16  as VGG16
+import networks.resnet as resnet
 import networks.bn_shallow as BN_LeNet5
-import networks.Conv5   as Conv5
-import networks.LeNetTanh as LeNet5Tanh
-import networks.TR_LeNet5 as TR_LeNet5
-import networks.SingleCN as CN1
 
 import utilities.datahandler as datahandler
 import utilities.analysis    as analysis
-import utilities.read_activations as read_activations
+from   utilities.loss_function import square_loss as square_loss
+from   utilities.loss_function import cross_entropy_loss as cross_entropy_loss
+from   utilities.loss_function import symmetric_square_loss as symmetric_square_loss
+from   utilities.loss_function import bag_size
+from utilities.datahandler import sliceanddice as sliceanddice
 
-from datapath import sig_train, bkg_train, sig_test, bkg_test
+from datapath import samples_path, fractions_path, sig_test, bkg_test
+from random import shuffle
+
+
+def data_generator(samples, output):
+	num_batches = len(samples)
+        z = zip(samples,output)
+        shuffle(z)
+        samples, output = zip(*z)
+	while 1:
+	    for i in xrange(num_batches):
+		yield samples[i],output[i]
+
+
+
+def load_data():
+
+    X  = np.load(samples_path)
+    Y  = np.load(fractions_path)
+
+
+    return X, Y
 
 
 def create_model(network, input_shape, img_channels, img_rows, img_cols, nb_classes):
@@ -48,61 +67,55 @@ def create_model(network, input_shape, img_channels, img_rows, img_cols, nb_clas
     if network == "LeNet5":
         model = LeNet5.GetNetArchitecture(input_shape)
         model_name = "LeNet5"
-
     elif network == "VGG16":
         model = VGG16.GetNetArchitecture(input_shape)
         model_name = "VGG16"
-
     elif network == "VGG19":
         model = VGG19.GetNetArchitecture(input_shape)
         model_name = "VGG19"
 
     elif network == "resnet18":
-        model = resnet.ResnetBuilder.build_resnet_18((img_channels, img_rows, img_cols), nb_classes)
+        model = resnet.ResnetBuilder.build_resnet18((img_channels, img_rows, img_cols), nb_classes)
         model_name = "Resnet18"
-
     elif network == "resnet34":
-        model = resnet.ResnetBuilder.build_resnet_34((img_channels, img_rows, img_cols), nb_classes)
+        model = resnet.ResnetBuilder.build_resnet18((img_channels, img_rows, img_cols), nb_classes)
         model_name = "Resnet34"
 
     elif network == "resnet50":
-        model = resnet.ResnetBuilder.build_resnet_50((img_channels, img_rows, img_cols), nb_classes)
+        model = resnet.ResnetBuilder.build_resnet18((img_channels, img_rows, img_cols), nb_classes)
         model_name = "Resnet50"
 
     elif network == "resnet101":
-        model = resnet.ResnetBuilder.build_resnet_101((img_channels, img_rows, img_cols), nb_classes)
+        model = resnet.ResnetBuilder.build_resnet18((img_channels, img_rows, img_cols), nb_classes)
         model_name = "Resnet101"
 
     elif network == "resnet152":
-        model = resnet.ResnetBuilder.build_resnet_152((img_channels, img_rows, img_cols), nb_classes)
+        model = resnet.ResnetBuilder.build_resnet18((img_channels, img_rows, img_cols), nb_classes)
         model_name = "Resnet152"
+
+    elif network =="FC":
+        model = FC.GetNetArchitecture(input_shape)
+        model_name = "Fully Connected"
 
     elif network == 'BN_LeNet5':
         model = BN_LeNet5.GetNetArchitecture(input_shape)
         model_name = 'BN_LeNet5'
 
-    elif network == 'FC':
-        model = FC.GetNetArchitecture(input_shape)
-        model_name = 'FC'
-
-    elif network =='Conv5':
-        model = Conv5.GetNetArchitecture(input_shape)
-        model_name = 'Conv5'
-    elif network =="LeNetTanh":
-        model = LeNet5Tanh.GetNetArchitecture(input_shape)
-        model_name = "LeNetTanh"
-    elif network == "TR_LeNet5":
-        model = TR_LeNet5.GetNetArchitecture(input_shape)
-        model_name = "TR_LeNet5"
-    elif network =="CN1":
-        model = CN1.GetNetArchitecture(input_shape)
-        model_name = "CN1"
     return model, model_name
 
-def train_and_evaluate_model(model, X_train, Y_train, X_test, Y_test, data_augmentation, no_callbacks):
+def train_and_evaluate_model(model, X_train, Y_train, X_test, Y_test, data_augmentation):
 
+    if data_augmentation == 'False':
+        print ('Not Using Data Augmentation.')
+        history = model.fit_generator(data_generator(X_train, Y_train),
+                                      nb_steps_per_epoch, 
+                                      epochs=nb_epoch,
+                                      validation_data=data_generator(X_test, Y_test),
+                                      nb_val_samples=valsize,
+                                      verbose=1)
 
-    if data_augmentation == 'True':
+        return history
+    elif data_augmentation == 'True':
         print('Using real-time data augmentation.')
         # This will do preprocessing and realtime data augmentation:
         datagen = ImageDataGenerator(
@@ -122,119 +135,67 @@ def train_and_evaluate_model(model, X_train, Y_train, X_test, Y_test, data_augme
         history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                               steps_per_epoch=X_train.shape[0] // batch_size,
                               validation_data=(X_test, Y_test),
-                              epochs=nb_epoch, verbose=1, max_q_size=100,
-                              callbacks = [lr_reducer, early_stopper])
-        return history
-
-    elif no_callbacks == 'True':
-        print('Not Using Data Augmentation or Early Stopping and LR Reducer')
-        history = model.fit(X_train, Y_train,
-                            batch_size=batch_size,
-                            epochs= nb_epoch,
-                            validation_data= (X_test, Y_test),
-                            shuffle = True)
-        return history
-
-    else:
-        print ('Not Using Data Augmentation.')
-        history = model.fit(X_train, Y_train,
-                            batch_size = batch_size,
-                            epochs = nb_epoch,
-                            validation_data = (X_test, Y_test),
-                            shuffle = True,
-                            callbacks=[lr_reducer, early_stopper]) # Do we need to shuffle?
+                              epochs=nb_epoch, verbose=1, max_q_size=100)
         return history
 
 
 if __name__ == "__main__":
-
-    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    early_stopper = EarlyStopping(min_delta=0.001, patience=10)
 
     np.random.seed(1337)
     timestamp = time.strftime("%Y.%m.%d_%H.%M.%S")
 
     batch_size = 500
     nb_classes = 2
-    nb_epoch = 50
+    nb_epoch = 30
     img_channels, img_rows, img_cols = 1, 25, 25
     test_size = 0.7
     backend = K.image_dim_ordering()
     k_folds = 1
+    Nbags = 10
+    nb_steps_per_epoch = 50
+    valsize = Nbags
+    Ebags = bag_size
 
     data_augmentation = 'False'
     savemodel = 'True'
-    save_schematic ='True'
+    save_schematic ='False'
     save_plots = 'True'
     save_roc = 'True'
     save_cm = 'True'
     precision_recall = 'True'
-    no_callbacks ='False'
-    conv_filter = 'False'
-    model_summary = 'False'
 
     scriptname = os.path.basename(__file__)
 
 
-    bkgArray, sigArray = datahandler.Loader(bkg_train, sig_train)
+    network = "BN_LeNet5"
 
-
-    network = "BN_LeNet5" #LeNet5, VGG16, VGG19, resnet18, 34, 50, 101, 152
-
-    loss_function = 'categorical_crossentropy'
+    loss_function = 'square_loss'
     optimizer = 'adadelta'
-    plt.figure()
+
+    SamplesArray, FractionsArray = load_data()
+
     for j in range (0, k_folds):
         if k_folds == 1:
-            X_train, X_test, Y_train, Y_test, input_shape = datahandler.SliceAndDice(bkgArray, sigArray, test_size, backend, img_rows, img_cols)
+            X_train, X_test, Y_train, Y_test, input_shape, trainsize, valsize = sliceanddice(SamplesArray, FractionsArray, test_size, Nbags, Ebags, backend, img_rows, img_cols)
         else:
             X_train, X_test, Y_train, Y_test, input_shape = datahandler.create_fold(sigArray, bkgArray, j, k_folds, backend, img_channels, img_rows, img_cols)
 
         print ("Running Fold: ",j+1 ,"/", k_folds)
 
-        Y_train = np_utils.to_categorical(Y_train, nb_classes)
-        Y_test = np_utils.to_categorical(Y_test, nb_classes)
-
         model = None # Clearing the NN.
         model, model_name = create_model(network, input_shape, img_channels, img_cols, img_rows, nb_classes)
-        model.compile(loss = loss_function, optimizer = optimizer, metrics = ['accuracy'])
+        model.compile(loss = square_loss, optimizer = optimizer, metrics = ['accuracy'])
 
-        history = train_and_evaluate_model(model, X_train, Y_train, X_test, Y_test, data_augmentation, no_callbacks)
-        y_score = model.predict(X_test, verbose = 0)
-        Y_test = Y_test[:,1]
-        y_score = y_score[:,1]
-        kfoldroc = '/home/lborgna/NN/V2ConvNet/kfoldroc/kroc_'+timestamp +'.png'
-        analysis.kfold_roc(Y_test, y_score)
+        history = train_and_evaluate_model(model, X_train, Y_train, X_test, Y_test, data_augmentation)
 
 
-    if k_folds != 1:
-        plt.savefig(kfoldroc)
-
-    if model_summary == 'True':
-        orig_stdout = sys.stdout
-        f = open('/home/lborgna/NN/V2ConvNet/summary/'+model_name+timestamp+'.txt', 'w')
-        sys.stdout = f
-        print(model.summary())
-        sys.stdout = orig_stdout
-        f.close()
-
-    print (sigArray[0].shape)
-    print (X_test[0:1].shape)
-    sig_img = sigArray[0].reshape(1, img_rows, img_cols, 1)
-    if conv_filter == "True":
-        a = read_activations.get_activations(model, sig_img, print_shape_only=True)  # with just one sample.
-
-        read_activations.display_activations(a)
-
-    plt.clf()
-
-    model_storage = "/mnt/storage/lborgna/TrainedModels/TrainFull/"
+    model_storage = "/mnt/storage/lborgna/TrainedModels/TrainWeak/"
     info_storage = model_storage +"info/"
 
-    mylist1 = ['Sig Train', 'Bkg train', 'Sig Test', 'Sig Test',"Time and Date: ",'Backend: ', 'input_shape', "Network Model: ", "Epochs: ", 'batch_size: ', 'test_size: ',  " K folds: ", "Data Augmentation: ","Loss Function: ", "Optimizer: "]
-    mylist2 = [sig_train, bkg_train, sig_test,bkg_test,timestamp, backend, input_shape ,model_name, nb_epoch, batch_size,test_size, k_folds, data_augmentation, loss_function, optimizer]
+    mylist1 = ['SamplesArray: ', 'FractionsArray: ', 'Sig Test', 'Sig Test',"Time and Date: ",'Backend: ', 'input_shape', "Network Model: ", "Epochs: ", 'batch_size: ', 'test_size: ',  " K folds: ", "Data Augmentation: ","Loss Function: ", "Optimizer: ", 'Bag size', 'Number of bags', 'nb_steps_per_epoch']
+    mylist2 = [samples_path, fractions_path, sig_test,bkg_test,timestamp, backend, input_shape ,model_name, nb_epoch, batch_size,test_size, k_folds, data_augmentation, loss_function, optimizer, bag_size, Nbags, nb_steps_per_epoch]
 
-    redundancy = "/home/lborgna/NN/V2ConvNet/info/"
+    redundancy = "/home/lborgna/NN/V2Weak/info/"
 
     if savemodel:
         print ("Storing Information File: ")
@@ -245,10 +206,10 @@ if __name__ == "__main__":
         ext = ".h5"
         model.save(model_storage + namestr + model_name + timestamp + ext)
 
-    if save_schematic:
-        schematic_name = model_name+timestamp+"schematic.png"
-        plot_model(model, "/home/lborgna/NN/V2ConvNet/schematics/"+schematic_name)
-        print("schematic saved: ", schematic_name)
+    #if save_schematic:
+    #    schematic_name = model_name+timestamp+"schematic.png"
+    #    plot_model("/home/lborgna/NN/V2Weak/schematics/"+schematic_name)
+    #    print("schematic saved: ", schematic_name)
 
     if save_plots:
         fig, ax1 = plt.subplots()
@@ -273,18 +234,13 @@ if __name__ == "__main__":
 
         plt.title('Model Training Performance', fontsize = 20)
         plt.tight_layout()
-        plt.savefig('/home/lborgna/NN/V2ConvNet/training_plots/train_'+timestamp+".png", bbox_extra_artists=(lgd,), bbox_inches='tight')
-        np.save('/home/lborgna/NN/V2ConvNet/training_plots/trainingarrays/acc_'+timestamp+'.npy',history.history['acc'])
-        np.save('/home/lborgna/NN/V2ConvNet/training_plots/trainingarrays/valacc_'+timestamp+'.npy',history.history['val_acc'])
-        np.save('/home/lborgna/NN/V2ConvNet/training_plots/trainingarrays/loss_'+timestamp+'.npy',history.history['loss'])
-        np.save('/home/lborgna/NN/V2ConvNet/training_plots/trainingarrays/valloss_'+timestamp+'.npy',history.history['val_loss'])
-
-
-
+        plt.savefig('/home/lborgna/NN/V2Weak/training_plots/train_'+timestamp+".png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+        np.save('/home/lborgna/NN/V2Weak/training_plots/trainingarrays/acc_'+timestamp+'.npy',history.history['acc'])
+        np.save('/home/lborgna/NN/V2Weak/training_plots/trainingarrays/valacc_'+timestamp+'.npy',history.history['val_acc'])
+        np.save('/home/lborgna/NN/V2Weak/training_plots/trainingarrays/loss_'+timestamp+'.npy',history.history['loss'])
+        np.save('/home/lborgna/NN/V2Weak/training_plots/trainingarrays/valloss_'+timestamp+'.npy',history.history['val_loss'])
 
     if save_roc or precision_recall:
-
-
         plt.clf()
         bkgTest, sigTest = datahandler.Loader(bkg_test, sig_test)
 
@@ -295,30 +251,30 @@ if __name__ == "__main__":
         Predictions_Test = model.predict(X_Test, verbose = 1)
         Y_Test = Y_Test[:, 1]
         Predictions_Test = Predictions_Test[:, 1]
-        rocoutputfile = "/home/lborgna/NN/V2ConvNet/roc_curves/roc_" + timestamp + ".png"
-
+        rocoutputfile = "/home/lborgna/NN/V2Weak/roc_curves/roc_" + timestamp + ".png"
         if save_roc:
             analysis.generate_results(Y_Test, Predictions_Test, rocoutputfile)
             analysis.save_results(Y_Test, Predictions_Test, timestamp)
             print('Test score: ', score [0])
             print('Test Accuracy: ', score[1])
+            print('ROC Curve Saved')
         if precision_recall:
             average_precision = average_precision_score(y_Test, Predictions_Test)
             print('Average precision-recall score: {0:0.2f}'.format(average_precision))
 
             plt.clf()
             precision, recall, _ = precision_recall_curve(y_Test, Predictions_Test)
-            plt.plot(recall, precision, color = 'b', alpha = 0.2)
-            plt.fill_between(recall, precision, alpha = 0.2, color = 'b')
+            plt.plot(recall, precision, color='b', alpha=0.2)
+            plt.fill_between(recall, precision, alpha=0.2, color='b')
             plt.xlabel('Recall')
             plt.ylabel('Precision')
             plt.ylim([0.0, 1.05])
             plt.xlim([0.0, 1.0])
             plt.title('Precision-Recall curve AUC: {0:0.4f}'.format(average_precision))
-            plt.savefig('/home/lborgna/NN/V2ConvNet/precision_recall/PR_' + timestamp + '.png')
-            np.save('/home/lborgna/NN/V2ConvNet/precision_recall/PR_arrays/precision_'+timestamp+'.npy', precision)
-            np.save('/home/lborgna/NN/V2ConvNet/precision_recall/PR_arrays/recall_'+timestamp+'.npy', recall)
-            np.save('/home/lborgna/NN/V2ConvNet/precision_recall/PR_arrays/aucpr_' + timestamp + '.npy', average_precision)
+            plt.savefig('/home/lborgna/NN/V2Weak/precision_recall/PR_' + timestamp + '.png')
+            np.save('/home/lborgna/NN/V2Weak/precision_recall/PR_arrays/precision_' + timestamp + '.npy', precision)
+            np.save('/home/lborgna/NN/V2Weak/precision_recall/PR_arrays/recall_' + timestamp + '.npy', recall)
+            np.save('/home/lborgna/NN/V2Weak/precision_recall/PR_arrays/aucpr_' + timestamp + '.npy', average_precision)
 
     if save_cm:
         plt.clf()
@@ -327,9 +283,7 @@ if __name__ == "__main__":
         cnf_matrix = confusion_matrix(Y_Test, Predictions_Test.round())
         np.set_printoptions(precision = 2)
         analysis.plot_confusion_matrix(timestamp, cnf_matrix, classes = class_names, normalize = normalize)
-
-
-
+        print('Confusion Matrix Saved')
 
 
     print("All Done - Timestamp: ", timestamp)
