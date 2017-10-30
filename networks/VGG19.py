@@ -1,95 +1,78 @@
 from keras.models import Sequential	
-from keras.layers.core import Flatten, Dense, Dropout, Activation
+from keras.layers.core import Flatten, Dense, Dropout
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.optimizers import SGD
-from keras.layers.advanced_activations import LeakyReLU, PReLU
-from keras.layers.normalization import BatchNormalization
+from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
 
-def GetNetArchitecture(input_shape):
+def GetNetArchitecture(input_shape, weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=input_shape))
-    model.add(Convolution2D(64, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(PReLU(alpha_initializer='zeros', alpha_regularizer=None, alpha_constraint=None, shared_axes=None))
+    model.add(Convolution2D(64, 3, 3, activation='linear'))
+    model.add(LeakyReLU(alpha=0.3))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(64, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(64, 3, 3, activation='relu'))
     model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(128, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(128, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(128, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(128, 3, 3, activation='relu'))
     model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
     model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='linear'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
 #    model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(Flatten())
-    model.add(Dense(4096, activation='relu')) # Vgg 16 uses 232
+    model.add(Dense(4096, activation='sigmoid'))
     model.add(Dropout(0.5))
-    model.add(Dense(4096, activation='relu')) #vgg 16 uses 232
+    model.add(Dense(4096, activation='sigmoid'))
     model.add(Dropout(0.5))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(2, activation='sigmoid'))
 
+#    if weights_path:
+#        model.load_weights(weights_path)
 
     return model
 
-#
+#if __name__ == "__main__":
+    #im = cv2.resize(cv2.imread('cat.jpg'), (224, 224)).astype(np.float32)
+    #im[:,:,0] -= 103.939
+    #im[:,:,1] -= 116.779
+    #im[:,:,2] -= 123.68
+    #im = im.transpose((2,0,1))
+    #im = np.expand_dims(im, axis=0)
+
+    # Test pretrained model
+    #model = VGG_19('vgg19_weights.h5')
+    #sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    #model.compile(optimizer=sgd, loss='categorical_crossentropy')
+    #out = model.predict(im)
+    #print np.argmax(out)

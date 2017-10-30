@@ -4,6 +4,11 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
 
 
+nb_filters = 32
+# size of pooling area for max pooling
+pool_size = (2, 2)
+# convolution kernel size
+kernel_size = (3, 3)
 
 def GetNetArchitecture(input_shape):
    
